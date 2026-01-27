@@ -1,36 +1,206 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Event Restock
 
-## Getting Started
+Kleine, schlanke Web App für die **Bestandsverwaltung und Nachschub** an Events (zB Bar, Foodstände).  
+Admins pflegen **Events, Locations, Artikel, Zuweisungen und Runner**. Locations erstellen Bestellungen, Runner sehen offene Aufträge und liefern diese aus.
 
-First, run the development server:
+Repository: https://github.com/Dodofant/event-restock
+
+---
+
+## Features
+
+### Admin (`/admin`)
+- PIN-basierter Admin Zugriff (Session Cookie mit TTL)
+- Events verwalten
+  - aktives Event wählen
+  - Event erstellen
+  - Event duplizieren
+  - Event archivieren
+- Locations verwalten
+  - Location erstellen, umbenennen, duplizieren, aktivieren/deaktivieren, löschen
+  - QR Code für Location Link
+  - PIN pro Location setzen
+- Artikel verwalten
+  - Kategorie, Unterkategorie, Packart (Stk/Gebinde), Packgrösse
+  - aktivieren/deaktivieren, löschen (mit Historien-Schutz)
+- Zuweisung
+  - Location auswählen
+  - Zugewiesene Artikel verwalten (Sortierung, entfernen)
+  - Verfügbare Artikel hinzufügen
+
+### Location UI (`/l/:publicId`)
+- Zugriff über Location PIN (Session TTL)
+- Bestellungen erfassen (Order + Order Lines)
+- Übersicht / Workflow je nach Umsetzung im UI
+
+### Runner UI
+- Zugriff via PIN (Runner Session TTL)
+- Offene Bestellungen sehen, liefern, Status setzen
+
+---
+
+## Tech Stack
+
+- Next.js (App Router)
+- TypeScript
+- Supabase (Postgres)
+- Minimal CSS (kein Tailwind notwendig)
+
+---
+
+## Voraussetzungen
+
+- Node.js 20+
+- Supabase Projekt (DB + Keys)
+
+---
+
+## Lokales Setup
+
+### 1) Repo klonen & Dependencies installieren
+
+```bash
+git clone https://github.com/Dodofant/event-restock.git
+cd event-restock
+npm install
+```
+
+### 2) Supabase Projekt einrichten
+
+Erstelle ein Supabase Projekt und führe anschliessend die SQL Migrationen aus (siehe `/sql` Ordner im Repo).
+
+Danach brauchst du:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+> Wichtig: **Service Role Key nur serverseitig verwenden** (nie ins Frontend).
+
+### 3) `.env.local` erstellen
+
+Lege im Projektroot eine Datei `.env.local` an:
+
+```env
+# Supabase (Client)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+
+# Supabase (Server only)
+SUPABASE_SERVICE_ROLE_KEY=...
+
+# Admin
+ADMIN_ACCESS_PIN=...
+ADMIN_SESSION_TTL_HOURS=24
+
+# Session Security (Server only)
+SESSION_SIGNING_SECRET=...
+LOCATION_SESSION_SECRET=...
+LOCATION_SESSION_TTL_HOURS=24
+RUNNER_SESSION_TTL_HOURS=24
+
+# Meta
+APP_VERSION=0.1.0
+BUILD_TIME=2026-01-27 23:02
+```
+
+---
+
+## Secrets generieren (SESSION_SIGNING_SECRET / LOCATION_SESSION_SECRET)
+
+Am einfachsten über Node:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Oder über OpenSSL:
+
+```bash
+openssl rand -hex 32
+```
+
+Diese Werte in `.env.local` übernehmen:
+
+- `SESSION_SIGNING_SECRET`
+- `LOCATION_SESSION_SECRET`
+
+Empfehlung:
+- **mindestens 32 Bytes** (64 Hex Zeichen)
+- pro Projekt unique
+- niemals committen
+
+---
+
+## Starten (Dev)
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App läuft danach standardmässig auf:
+- http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Admin Zugriff
 
-## Learn More
+Admin Panel:
+- http://localhost:3000/admin
 
-To learn more about Next.js, take a look at the following resources:
+Der Zugriff ist **PIN-basiert**. Es wird **kein Supabase Auth Admin User** benötigt.
+Die API Routen prüfen serverseitig via `requireAdminSession()`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy auf Vercel
 
-## Deploy on Vercel
+### 1) Projekt in Vercel importieren
+- GitHub Repo verbinden
+- Framework automatisch: Next.js
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 2) Environment Variables setzen
+In Vercel unter **Project Settings → Environment Variables** alle Variablen aus `.env.local` setzen:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ADMIN_ACCESS_PIN`
+- `ADMIN_SESSION_TTL_HOURS`
+- `SESSION_SIGNING_SECRET`
+- `LOCATION_SESSION_SECRET`
+- `LOCATION_SESSION_TTL_HOURS`
+- `RUNNER_SESSION_TTL_HOURS`
+- optional: `APP_VERSION`, `BUILD_TIME`
+
+> Achtung: Alles mit `SERVICE_ROLE` oder `*_SECRET` muss **Server-only** bleiben.
+
+### 3) Deploy
+Vercel baut automatisch bei jedem Push.
+
+---
+
+## Datenmodell (Kurzüberblick)
+
+Typische Tabellen (je nach Stand des Repos):
+- `events`
+- `app_settings` (zB `active_event_id`)
+- `locations`
+- `items`
+- `location_items` (Zuweisung + Sort)
+- `runners`
+- `orders`
+- `order_lines`
+
+---
+
+## Hinweise zur Sicherheit
+
+- Adminzugriff läuft über PIN + signierte Session Cookies
+- `SUPABASE_SERVICE_ROLE_KEY` nur serverseitig
+- Optional empfehlenswert: Rate Limiting / Lockout auf PIN Endpoints
+
+---
+
+## Lizenz
+
+GPL-3.0 (siehe `LICENSE`)

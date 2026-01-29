@@ -81,31 +81,30 @@ Danach brauchst du:
 Lege im Projektroot eine Datei `.env.local` an:
 
 ```env
-# Supabase (Client)
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
-# Supabase (Server only)
+# nur serverseitig verwenden
 SUPABASE_SERVICE_ROLE_KEY=...
 
-# Admin
-ADMIN_ACCESS_PIN=...
-ADMIN_SESSION_TTL_HOURS=24
+# Sessions / Tokens
 
-# Session Security (Server only)
-SESSION_SIGNING_SECRET=...
-LOCATION_SESSION_SECRET=...
 LOCATION_SESSION_TTL_HOURS=24
 RUNNER_SESSION_TTL_HOURS=24
+ADMIN_SESSION_TTL_HOURS=24
 
-# Meta
-APP_VERSION=0.1.0
-BUILD_TIME=2026-01-27 23:02
+# Admin Zugang
+ADMIN_ACCESS_PIN=...
+
+# Signatur für Cookies/Tokens (serverseitig)
+SESSION_SIGNING_SECRET=...
+RUNNER_SESSION_SECRET=...
+LOCATION_SESSION_SECRET=...
 ```
 
 ---
 
-## Secrets generieren (SESSION_SIGNING_SECRET / LOCATION_SESSION_SECRET)
+## Secrets generieren (SESSION_SIGNING_SECRET / LOCATION_SESSION_SECRET / RUNNER_SESSION_SECRET)
 
 Am einfachsten über Node:
 
@@ -123,6 +122,7 @@ Diese Werte in `.env.local` übernehmen:
 
 - `SESSION_SIGNING_SECRET`
 - `LOCATION_SESSION_SECRET`
+- `RUNNER_SESSION_SECRET`
 
 Empfehlung:
 - **mindestens 32 Bytes** (64 Hex Zeichen)

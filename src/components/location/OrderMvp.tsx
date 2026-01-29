@@ -2,10 +2,35 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+type Subcategory =
+  | "bier"
+  | "wein"
+  | "softdrink"
+  | "wasser"
+  | "spirituosen"
+  | "cocktail_mix"
+  | "kaffee_tee"
+  | "sonstiges_getraenk"
+  | "fleisch"
+  | "vegetarisch"
+  | "beilage"
+  | "teigwaren"
+  | "brot_buns"
+  | "sauce_dressing"
+  | "snack"
+  | "sonstiges_food"
+  | "einweg"
+  | "verpackung"
+  | "hygiene"
+  | "gas"
+  | "technik"
+  | "sonstiges_other";
+
 type Item = {
   id: string;
   name: string;
   category: "drink" | "food" | "other";
+  subcategory: Subcategory;
   default_unit: "stk" | "gebinde";
   pack_size: number | null;
 };
@@ -17,10 +42,46 @@ type LineDraft = {
   qty: number;
 };
 
+const SUBCATEGORY_OPTIONS = {
+  drink: [
+    { value: "bier", label: "Bier" },
+    { value: "wein", label: "Wein" },
+    { value: "softdrink", label: "Softdrink" },
+    { value: "wasser", label: "Wasser" },
+    { value: "spirituosen", label: "Spirituosen" },
+    { value: "cocktail_mix", label: "Cocktail Mix" },
+    { value: "kaffee_tee", label: "Kaffee Tee" },
+    { value: "sonstiges_getraenk", label: "Sonstiges Getränk" },
+  ],
+  food: [
+    { value: "fleisch", label: "Fleisch" },
+    { value: "vegetarisch", label: "Vegetarisch" },
+    { value: "beilage", label: "Beilage" },
+    { value: "teigwaren", label: "Teigwaren" },
+    { value: "brot_buns", label: "Brot Buns" },
+    { value: "sauce_dressing", label: "Sauce Dressing" },
+    { value: "snack", label: "Snack" },
+    { value: "sonstiges_food", label: "Sonstiges Food" },
+  ],
+  other: [
+    { value: "einweg", label: "Einweg" },
+    { value: "verpackung", label: "Verpackung" },
+    { value: "hygiene", label: "Hygiene" },
+    { value: "gas", label: "Gas" },
+    { value: "technik", label: "Technik" },
+    { value: "sonstiges_other", label: "Sonstiges" },
+  ],
+} as const;
+
 function labelCategory(c: Item["category"]) {
   if (c === "drink") return "Getränke";
   if (c === "food") return "Essen";
   return "Anderes";
+}
+
+function labelSubcategory(category: Item["category"], sub: Item["subcategory"]) {
+  const list = SUBCATEGORY_OPTIONS[category] as ReadonlyArray<{ value: string; label: string }>;
+  return list.find((x) => x.value === sub)?.label ?? sub;
 }
 
 function labelUnit(u: "stk" | "gebinde") {
@@ -36,7 +97,6 @@ export default function OrderMvp() {
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Neu: Priorität + Notiz (optional)
   const [priority, setPriority] = useState<"normal" | "dringend">("normal");
   const [note, setNote] = useState<string>("");
 
@@ -104,7 +164,8 @@ export default function OrderMvp() {
     setSuccess(null);
     setLines((prev) => {
       const cur =
-        prev[item.id] ?? ({
+        prev[item.id] ??
+        ({
           itemId: item.id,
           name: item.name,
           unit: item.default_unit,
@@ -212,8 +273,9 @@ export default function OrderMvp() {
                   <div>
                     <div className="fw-900">{item.name}</div>
                     <div className="small-muted">
-                      Kategorie: {labelCategory(item.category)} · Standard: {labelUnit(item.default_unit)}
-                      {item.pack_size ? ` · Gebinde: ${item.pack_size}` : ""}
+                      {labelCategory(item.category)} {">"} {labelSubcategory(item.category, item.subcategory)} ·{" "}
+                      {labelUnit(item.default_unit)}
+                      {item.pack_size ? ` · à ${item.pack_size} Stk` : ""}
                     </div>
                   </div>
 
@@ -223,11 +285,7 @@ export default function OrderMvp() {
                 </div>
 
                 <div className="row row-wrap gap-10">
-                  <button
-                    type="button"
-                    className="btn-square"
-                    onClick={() => setQty(item, Math.max(0, qty - 1))}
-                  >
+                  <button type="button" className="btn-square" onClick={() => setQty(item, Math.max(0, qty - 1))}>
                     <i className="fa-solid fa-minus" />
                   </button>
 
@@ -255,12 +313,7 @@ export default function OrderMvp() {
       )}
 
       <div>
-        <button
-          type="button"
-          className="btn btn-full"
-          onClick={submit}
-          disabled={sending || lineList.length === 0}
-        >
+        <button type="button" className="btn btn-full" onClick={submit} disabled={sending || lineList.length === 0}>
           {sending ? "Sende…" : `Bestellen (${lineList.length})`} <i className="fa-solid fa-truck-fast" />
         </button>
 

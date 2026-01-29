@@ -45,8 +45,30 @@ export default function RunnerPinGate({ onUnlocked }: Props) {
 
   useEffect(() => {
     loadRunners();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+    useEffect(() => {
+      let cancelled = false;
+
+      (async () => {
+        try {
+          const res = await fetch("/api/runner/session", { method: "GET", cache: "no-store", credentials: "include" });
+          const data = await res.json().catch(() => null);
+          if (cancelled) return;
+
+          if (res.ok && data?.ok) {
+            onUnlocked(data?.runnerName ?? "Runner");
+          }
+        } catch {
+          // ignorieren
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [onUnlocked]);
+
 
   const canSubmit = !sending && !!runnerId && pin.length >= 4;
 

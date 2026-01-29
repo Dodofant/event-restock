@@ -9,7 +9,6 @@ export async function GET() {
     const supabase = supabaseServer();
     const eventId = await getActiveEventId();
 
-    // Guard: Location muss zum aktiven Event gehören
     const { data: locRow, error: locErr } = await supabase
       .from("locations")
       .select("id")
@@ -19,12 +18,15 @@ export async function GET() {
 
     if (locErr) return NextResponse.json({ ok: false, message: locErr.message }, { status: 500 });
     if (!locRow || locRow.length === 0) {
-      return NextResponse.json({ ok: false, message: "Location nicht gefunden oder nicht im aktiven Event" }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, message: "Location nicht gefunden oder nicht im aktiven Event" },
+        { status: 404 }
+      );
     }
 
     const { data, error } = await supabase
       .from("location_items")
-      .select("item_id, items:items (id, name, category, default_unit, pack_size)")
+      .select("item_id, items:items (id, name, category, subcategory, default_unit, pack_size)")
       .eq("event_id", eventId)
       .eq("location_id", loc)
       .eq("active", true);
@@ -33,7 +35,7 @@ export async function GET() {
       return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
     }
 
-    const items = data?.map((row) => row.items).filter(Boolean) ?? [];
+    const items = data?.map((row: any) => row.items).filter(Boolean) ?? [];
     return NextResponse.json({ ok: true, items });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unbekannter Fehler";

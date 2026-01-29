@@ -2,7 +2,8 @@
 
 import AppInfoButton from "@/components/shared/AppInfoButton";
 import ThemeToggle from "@/components/shared/ThemeToggle";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 
 type Props = {
   publicId: string;
@@ -43,6 +44,33 @@ export default function PinGate({ publicId, onUnlocked }: Props) {
       setLoading(false);
     }
   }
+
+    useEffect(() => {
+      let cancelled = false;
+
+      (async () => {
+        try {
+          const res = await fetch(`/api/location/session?publicId=${encodeURIComponent(publicId)}`, {
+            method: "GET",
+            cache: "no-store",
+            credentials: "include",
+          });
+
+          const data = await res.json().catch(() => null);
+          if (cancelled) return;
+
+          if (res.ok && data?.ok) {
+            onUnlocked("Location");
+          }
+        } catch {
+          // ignorieren
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [publicId, onUnlocked]);
 
   return (
     <div className="container-narrow">

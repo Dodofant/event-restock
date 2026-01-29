@@ -73,7 +73,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Falscher PIN" }, { status: 401 });
     }
 
-    const token = await createRunnerSessionToken();
+    // Session Token enthält Runner + Event
+    const token = await createRunnerSessionToken({
+      runnerId: runner.id,
+      runnerName: runner.name,
+      eventId,
+    });
+
     const res = NextResponse.json({ ok: true, runnerName: runner.name });
 
     res.cookies.set({

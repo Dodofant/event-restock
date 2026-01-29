@@ -2,12 +2,35 @@
 
 import AppInfoButton from "@/components/shared/AppInfoButton";
 import ThemeToggle from "@/components/shared/ThemeToggle";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminPinGate({ onUnlocked }: { onUnlocked: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Beim Laden: prüfen ob Cookie Session bereits gültig ist
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/session", { method: "GET", cache: "no-store" });
+        if (cancelled) return;
+
+        if (res.ok) {
+          onUnlocked();
+          return;
+        }
+      } catch {
+        // ignorieren
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [onUnlocked]);
 
   const canSubmit = !loading && pin.trim().length >= 4;
 

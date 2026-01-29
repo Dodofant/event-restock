@@ -3,9 +3,16 @@ import { cookies } from "next/headers";
 
 export const RUNNER_COOKIE_NAME = "runner_session";
 
+type RunnerSessionPayload = {
+  typ: "runner";
+  rid?: string; // runner id
+  rn?: string;  // runner name (optional)
+  eid?: string; // event id (optional)
+};
+
 function getSecret(): Uint8Array {
-  const secret = process.env.LOCATION_SESSION_SECRET;
-  if (!secret) throw new Error("LOCATION_SESSION_SECRET fehlt in .env.local");
+  const secret = process.env.RUNNER_SESSION_SECRET;
+  if (!secret) throw new Error("RUNNER_SESSION_SECRET fehlt in den Env-Variablen");
   return new TextEncoder().encode(secret);
 }
 
@@ -16,11 +23,22 @@ function getTtlHours(): number {
   return ttl;
 }
 
-export async function createRunnerSessionToken() {
+export async function createRunnerSessionToken(input?: {
+  runnerId?: string;
+  runnerName?: string;
+  eventId?: string;
+}) {
   const ttlHours = getTtlHours();
   const expSeconds = Math.floor(Date.now() / 1000) + ttlHours * 60 * 60;
 
-  return new SignJWT({ typ: "runner" })
+  const payload: RunnerSessionPayload = {
+    typ: "runner",
+    rid: input?.runnerId,
+    rn: input?.runnerName,
+    eid: input?.eventId,
+  };
+
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expSeconds)
@@ -34,5 +52,11 @@ export async function requireRunnerSession() {
   if (!token) throw new Error("Nicht freigeschaltet");
 
   const { payload } = await jwtVerify(token, getSecret());
-  if (payload.typ !== "runner") throw new Error("Nicht freigeschaltet");
+  if ((payload as any).typ !== "runner") throw new Error("Nicht freigeschaltet");
+
+  return {
+    runnerId: (payload as any).rid as string | undefined,
+    runnerName: (payload as any).rn as string | undefined,
+    eventId: (payload as any).eid as string | undefined,
+  };
 }

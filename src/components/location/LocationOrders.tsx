@@ -31,7 +31,6 @@ export default function LocationOrders() {
   const [locationId, setLocationId] = useState<string | null>(null);
   const [rtOk, setRtOk] = useState(false);
 
-  // Geliefert einklappbar (standard: zu)
   const [deliveredOpen, setDeliveredOpen] = useState(false);
 
   const reloadTimer = useRef<number | null>(null);
@@ -64,7 +63,6 @@ export default function LocationOrders() {
     setError(null);
   }
 
-  // 1) Initial load + Polling Fallback (schnell solange Realtime nicht subscribed ist)
   useEffect(() => {
     load();
     const ms = rtOk ? 30000 : 3000;
@@ -72,7 +70,6 @@ export default function LocationOrders() {
     return () => clearInterval(t);
   }, [rtOk]);
 
-  // 2) Realtime: orders für diese Location
   useEffect(() => {
     if (!locationId) return;
 
@@ -93,7 +90,6 @@ export default function LocationOrders() {
     };
   }, [locationId]);
 
-  // 3) Sofort refresh nach erfolgreichem Submit (Event wird von OrderMvp dispatcht)
   useEffect(() => {
     const handler = () => load();
     window.addEventListener("location-orders-refresh", handler);
@@ -104,9 +100,7 @@ export default function LocationOrders() {
   const deliveredOrders = useMemo(() => orders.filter((o) => o.status === "geliefert"), [orders]);
 
   return (
-    // Mehr Abstand nach oben, damit es visuell klar von der Bestellmaske getrennt ist
     <div style={{ marginTop: 28, paddingTop: 18 }}>
-      {/* optional: leichter Top-Trenner innerhalb des Statusblocks */}
       <div
         aria-hidden="true"
         style={{
@@ -135,7 +129,6 @@ export default function LocationOrders() {
 
       {error && <div className="card bad-danger mt-10">{error}</div>}
 
-      {/* Offen */}
       <div style={{ marginTop: 26 }}>
         <h3 style={{ margin: "0 0 12px 0", fontSize: 16, fontWeight: 900 }}>Offen</h3>
 
@@ -172,7 +165,6 @@ export default function LocationOrders() {
         </div>
       </div>
 
-      {/* Klarer Trenner zwischen den Sektionen */}
       <div
         aria-hidden="true"
         style={{
@@ -184,7 +176,6 @@ export default function LocationOrders() {
         }}
       />
 
-      {/* Geliefert einklappbar */}
       <div style={{ marginTop: 0 }}>
         <div className="row row-between row-wrap" style={{ alignItems: "center", marginBottom: 12 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900 }}>Geliefert</h3>

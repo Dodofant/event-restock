@@ -312,6 +312,12 @@ select.input {
   background: rgba(208, 0, 32, 0.08);
 }
 
+.btn-fixed {
+  min-width: 120px;
+  text-align: center;
+  justify-content: center;
+}
+
 html.theme-dark .btn-pill-active {
   border-color: rgba(255, 59, 92, 0.40);
   background: rgba(255, 59, 92, 0.14);
@@ -831,7 +837,7 @@ html.theme-dark .theme-switch .theme-track {
 }
 
 /* =========================
-   PinGate Header (unified)
+   PinGate Header
 ========================= */
 .pin-gate-head{
   display: flex;
@@ -863,4 +869,20 @@ html.theme-dark .theme-switch .theme-track {
   .pin-gate-actions .btn-ghost {
     height: 30px;
   }
+}
+
+/* =========================
+   Images
+========================= */
+.home-logo{
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.home-logo img{
+  height: auto;
+  max-width: 120px;
 }

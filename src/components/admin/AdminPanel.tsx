@@ -649,6 +649,9 @@ function ItemsAdmin() {
   return (
     <div className="mt-14 grid gap-10">
       <div className="card grid gap-10">
+        <div className="row row-wrap gap-10">
+          <input className="input flex-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="Artikelname" />
+        </div>
         <div className="form-row form-4" style={{ alignItems: "stretch" }}>
           <select
             className="input"
@@ -682,7 +685,6 @@ function ItemsAdmin() {
             ))}
           </select>
 
-          {/* Packart */}
           <select className="input" value={unit} onChange={(e) => setUnit(e.target.value as any)}>
             {UNIT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
